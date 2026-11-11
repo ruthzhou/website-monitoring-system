@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+.vscode/
+*.suo
+*.user
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Frontend
+node_modules/
+.next/
+dist/
+
+# Environment variables
+.env
+.env.*
+!.env.example
