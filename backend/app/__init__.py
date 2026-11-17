@@ -27,8 +27,12 @@ def create_app():
     from app import models
     from app.api.auth import auth_bp
     from app.api.websites import websites_bp
+    from app.api.alerts import alerts_bp
+    from app.api.notification_settings import notification_settings_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(websites_bp, url_prefix="/api/websites")
+    app.register_blueprint(alerts_bp, url_prefix="/api/alerts")
+    app.register_blueprint(notification_settings_bp,url_prefix="/api/notifications/settings")
 
     return app

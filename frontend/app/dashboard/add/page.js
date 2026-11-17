@@ -54,9 +54,15 @@ export default function AddWebsitePage() {
         }
     }
 
+    const inputStyle =
+        "w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+
+    const labelStyle = "mb-2 block font-medium text-gray-700";
+
     return (
         <main className="min-h-screen bg-gray-100 p-8">
             <div className="mx-auto max-w-xl rounded-xl bg-white p-8 shadow">
+
                 <h1 className="mb-2 text-2xl font-bold text-gray-900">
                     Add Website
                 </h1>
@@ -66,42 +72,46 @@ export default function AddWebsitePage() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+
                     <div>
-                        <label className="mb-2 block font-medium">
+                        <label htmlFor="name" className={labelStyle}>
                             Website Name
                         </label>
                         <input
+                            id="name"
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="My Company Website"
                             required
-                            className="w-full rounded-lg border p-3"
+                            className={inputStyle}
                         />
                     </div>
 
                     <div>
-                        <label className="mb-2 block font-medium">
+                        <label htmlFor="url" className={labelStyle}>
                             Website URL
                         </label>
                         <input
+                            id="url"
                             type="url"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://example.com"
                             required
-                            className="w-full rounded-lg border p-3"
+                            className={inputStyle}
                         />
                     </div>
 
                     <div>
-                        <label className="mb-2 block font-medium">
+                        <label htmlFor="interval" className={labelStyle}>
                             Check Interval (seconds)
                         </label>
                         <select
+                            id="interval"
                             value={interval}
                             onChange={(e) => setInterval(e.target.value)}
-                            className="w-full rounded-lg border p-3"
+                            className={inputStyle}
                         >
                             <option value={60}>Every 1 minute</option>
                             <option value={300}>Every 5 minutes</option>
@@ -112,25 +122,28 @@ export default function AddWebsitePage() {
                     </div>
 
                     {message && (
-                        <p className="text-sm text-red-600">{message}</p>
+                        <p className="text-sm text-red-600">
+                            {message}
+                        </p>
                     )}
 
                     <div className="flex gap-3">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="rounded-lg bg-blue-600 px-5 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+                            className="rounded-lg bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                         >
                             {loading ? "Adding..." : "Add Website"}
                         </button>
 
                         <a
                             href="/dashboard"
-                            className="rounded-lg bg-gray-200 px-5 py-3 text-gray-800 hover:bg-gray-300"
+                            className="rounded-lg bg-gray-200 px-5 py-3 font-medium text-gray-800 hover:bg-gray-300"
                         >
                             Cancel
                         </a>
                     </div>
+
                 </form>
             </div>
         </main>

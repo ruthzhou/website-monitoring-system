@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 from app.extensions import db
 from app.models.website import Website
+from app.models.monitor_log import MonitorLog
 
 
 websites_bp = Blueprint("websites", __name__)
@@ -214,3 +215,117 @@ def delete_website(website_id):
     return jsonify({
         "message": "Website deleted successfully."
     }), 200
+
+
+# DASHBOARD STATISTICS
+@websites_bp.route("/dashboard", methods=["GET"])
+@jwt_required()
+def get_dashboard_stats():
+
+    user_id = int(get_jwt_identity())
+
+    # Find the latest monitoring log for each website.
+    latest_log_id = (
+        db.session.query(MonitorLog.id)
+        .filter(MonitorLog.website_id == Website.id)
+        .order_by(
+            MonitorLog.checked_at.desc(),
+            MonitorLog.id.desc()
+        )
+        .limit(1)
+        .correlate(Website)
+        .scalar_subquery()
+    )
+
+    # Retrieve the user's websites and their latest monitoring logs.
+    results = (
+        db.session.query(Website, MonitorLog)
+        .outerjoin(
+            MonitorLog,
+            MonitorLog.id == latest_log_id
+        )
+        .filter(Website.user_id == user_id)
+        .order_by(Website.id.desc())
+        .all()
+    )
+
+    total_websites = len(results)
+
+    active_count = 0
+    inactive_count = 0
+    online_count = 0
+    offline_count = 0
+    unknown_count = 0
+
+    response_times = []
+    website_results = []
+
+    for website, latest_log in results:
+
+        if not website.is_active:
+            inactive_count += 1
+            monitoring_status = "inactive"
+
+        else:
+            active_count += 1
+
+            if latest_log is None:
+                unknown_count += 1
+                monitoring_status = "unknown"
+
+            elif latest_log.is_up:
+                online_count += 1
+                monitoring_status = "online"
+
+                if latest_log.response_time is not None:
+                    response_times.append(
+                        latest_log.response_time
+                    )
+
+            else:
+                offline_count += 1
+                monitoring_status = "offline"
+
+        website_results.append({
+            "id": website.id,
+            "name": website.name,
+            "url": website.url,
+            "is_active": website.is_active,
+            "check_interval_seconds": website.check_interval_seconds,
+            "last_checked_at": (
+                website.last_checked_at.isoformat()
+                if website.last_checked_at else None
+            ),
+            "monitoring_status": monitoring_status,
+            "latest_status_code": (
+                latest_log.status_code if latest_log else None
+            ),
+            "latest_response_time": (
+                latest_log.response_time if latest_log else None
+            ),
+            "latest_checked_at": (
+                latest_log.checked_at.isoformat()
+                if latest_log else None
+            )
+        })
+
+    # Calculate average response time from the latest
+    # successful monitoring result of each active website.
+    average_response_time = (
+        round(sum(response_times) / len(response_times), 2)
+        if response_times else None
+    )
+
+    return jsonify({
+        "statistics": {
+            "total_websites": total_websites,
+            "active_websites": active_count,
+            "inactive_websites": inactive_count,
+            "online_websites": online_count,
+            "offline_websites": offline_count,
+            "unknown_websites": unknown_count,
+            "average_response_time": average_response_time
+        },
+        "websites": website_results
+    }), 200
+
